@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Totem Flex Media</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #07090f; color: #e8eaf0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    h1 { color: #00d4ff; }
+    .box { background: #141720; border: 1px solid #1e2533; border-radius: 12px; padding: 30px; width: 500px; }
+    textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #1e2533; background: #0e1118; color: #e8eaf0; font-size: 14px; resize: none; }
+    button { margin-top: 10px; width: 100%; padding: 12px; background: #0066ff; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
+    button:hover { background: #00d4ff; }
+    .resposta { margin-top: 20px; background: #0e1118; padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff; }
+    .fontes { font-size: 11px; color: #6b7280; margin-top: 8px; }
+    .loading { color: #00d4ff; }
+  </style>
+</head>
+<body>
+  <h1>Totem Flex Media</h1>
+  <div class="box">
+    <p>Como posso ajudar você hoje?</p>
+    <textarea id="pergunta" rows="3" placeholder="Digite sua pergunta..."></textarea>
+    <button onclick="perguntar()">Enviar</button>
+    <div id="resultado"></div>
+  </div>
+
+  <script>
+    const API = "http://13.217.48.168:8000";
+
+    async function perguntar() {
+      const pergunta = document.getElementById("pergunta").value.trim();
+      if (!pergunta) return;
+
+      document.getElementById("resultado").innerHTML = '<p class="loading">Buscando resposta...</p>';
+
+      try {
+        const res = await fetch(API + "/perguntar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pergunta })
+        });
+        const data = await res.json();
+        document.getElementById("resultado").innerHTML = `
+          <div class="resposta">
+            <p>${data.resposta}</p>
+            <p class="fontes">Fontes: ${data.fontes.join(", ")}</p>
+          </div>`;
+      } catch (e) {
+        document.getElementById("resultado").innerHTML = '<p style="color:red">Erro ao conectar na API.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
