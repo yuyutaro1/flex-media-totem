@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard IoT - Flex Media</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #07090f; color: #e8eaf0; margin: 0; padding: 20px; }
+    h1 { color: #00d4ff; text-align: center; }
+    .cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+    .card { background: #141720; border: 1px solid #1e2533; border-radius: 12px; padding: 20px; min-width: 180px; text-align: center; }
+    .card h2 { color: #00d4ff; font-size: 36px; margin: 0; }
+    .card p { color: #6b7280; margin: 5px 0 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { background: #0066ff; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #1e2533; }
+    tr:hover { background: #141720; }
+    .status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+    .online { background: #00e5a0; }
+    .offline { background: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>Dashboard IoT — Flex Media</h1>
+  
+  <div class="cards">
+    <div class="card">
+      <h2 id="total">--</h2>
+      <p>Total de Leituras</p>
+    </div>
+    <div class="card">
+      <h2 id="passagens">--</h2>
+      <p>Passagens Detectadas</p>
+    </div>
+    <div class="card">
+      <h2 id="distancia">--</h2>
+      <p>Última Distância (cm)</p>
+    </div>
+    <div class="card">
+      <h2 id="movimento" style="font-size:20px">--</h2>
+      <p>Último Movimento</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Horário</th>
+        <th>Dispositivo</th>
+        <th>Distância (cm)</th>
+        <th>Movimento</th>
+        <th>Contador</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+
+  <script>
+    const API = "http://98.92.198.213:8000";
+
+    async function carregar() {
+      try {
+        const res = await fetch(API + "/iot/leituras");
+        const data = await res.json();
+        
+        if (data.leituras && data.leituras.length > 0) {
+          const ultima = data.leituras[0];
+          document.getElementById("total").textContent = data.total;
+          document.getElementById("passagens").textContent = ultima.contador_passagens;
+          document.getElementById("distancia").textContent = ultima.distancia_cm.toFixed(1);
+          document.getElementById("movimento").textContent = ultima.movimento_detectado ? "✅ Sim" : "❌ Não";
+          
+          const tbody = document.getElementById("tabela");
+          tbody.innerHTML = data.leituras.map(l => `
+            <tr>
+              <td>${new Date(l.timestamp).toLocaleString("pt-BR")}</td>
+              <td><span class="status online"></span>${l.device_id}</td>
+              <td>${l.distancia_cm.toFixed(1)}</td>
+              <td>${l.movimento_detectado ? "✅" : "❌"}</td>
+              <td>${l.contador_passagens}</td>
+            </tr>
+          `).join("");
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    carregar();
+    setInterval(carregar, 5000);
+  </script>
+</body>
+</html>
